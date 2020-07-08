@@ -1,0 +1,87 @@
+import telebot
+import requests
+import datetime
+import xmltodict
+from telebot import types
+from bs4 import BeautifulSoup as BS
+
+bot = telebot.TeleBot("1380537725:AAE7gldzzPmKOHapwJYX7tR-nxRW_9BECXA")
+
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    button_weather = types.KeyboardButton('Узнать погоду')
+    button_money = types.KeyboardButton('Курс доллара/евро:')
+    button_return = types.KeyboardButton('Закрыть меню')
+    markup.add(button_weather, button_money, button_return)
+
+    sms = bot.send_message(message.chat.id,
+                           "Выберите:", reply_markup=markup)
+    bot.register_next_step_handler(sms, process_select_step)
+
+def process_select_step(req):
+    try:
+        if (req.text == 'Курс доллара/евро:'):
+            money(req)
+        elif (req.text == 'Узнать погоду'):
+            weather(req)
+        elif (req.text == 'Закрыть меню'):
+            # убрать клавиатуру
+            markup = types.ReplyKeyboardRemove(selective=False)
+            bot.send_message(req.chat.id, "Чтож, увидимся позже, напиши /start или /help, чтобы возобновить работу.\n",
+                             reply_markup=markup)
+        elif (req.text == "/start" or req.text == "/help"):
+            sms = bot.send_message(req.chat.id,
+                                   "Привет! Меня зовут Афина,я Ваш личный помощник, умею выводить курсы валют и предсказывать погоду!")
+            send_welcome(req)
+        else:
+            bot.send_message(req.chat.id, "Извините, я еще только учусь понимать человеческую речь :)\n")
+            send_welcome(req)
+    except Exception as e:
+       bot.reply_to(req, e)
+
+# Погода
+def weather(message):
+    r = requests.get('https://sinoptik.ua/погода-ульяновск')
+    html = BS(r.content, 'html.parser')
+
+    for el in html.select('#content'):
+        temp_low = el.select('.temperature .min')[0].text
+        temp_high = el.select('.temperature .max')[0].text
+        text = el.select('.wDescription .description')[0].text
+    bot.send_message(message.chat.id, "Привет, погода на сегодня:\n" +
+                     temp_low + ', ' + temp_high + '\n' + text)
+    bot.register_next_step_handler(message, process_select_step)
+
+def money(message):
+        # URL запроса
+        get_curl = "http://www.cbr.ru/scripts/XML_daily.asp"
+        # Формат даты: день/месяц/год
+        date_format = "%d/%m/%Y"
+
+        # Дата запроса
+        today = datetime.datetime.today()
+        params = {
+            "date_req": today.strftime(date_format),
+        }
+        r = requests.get(get_curl, params=params)
+        resp = r.text
+        data = xmltodict.parse(resp)
+        # Ищем по @ID
+        section_id_usd = 'R01235'
+        section_id_eur = 'R01239'
+
+        for item in data['ValCurs']['Valute']:
+            if item['@ID'] == section_id_usd:
+                rate_usd = item['Value']
+            if item['@ID'] == section_id_eur:
+                rate_eur = item['Value']
+                break
+        bot.send_message(message.chat.id, "Привет, курс валют на сегодня:\n" +
+                     "USD" + ': ' + str(rate_usd) + "\n" + "EUR" + ': ' + str(rate_eur))
+        bot.register_next_step_handler(message, process_select_step)
+bot.enable_save_next_step_handlers(delay=2)
+bot.load_next_step_handlers()
+
+if __name__ == '__main__':
+    bot.polling(none_stop=True)
