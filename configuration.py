@@ -1,1 +1,2 @@
-Token = "1309878552:AAFrM5oNk8HWbNECqOGjQLAP2csRpkADSFc"
+token = "*"
+
