@@ -5,8 +5,9 @@ import xmltodict
 import random, os
 from telebot import types
 from bs4 import BeautifulSoup as BS
+import configuration
 
-bot = telebot.TeleBot("1380537725:AAE7gldzzPmKOHapwJYX7tR-nxRW_9BECXA")
+bot = telebot.TeleBot(configuration.Token)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
