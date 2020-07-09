@@ -37,13 +37,14 @@ def process_select_step(req):
             sms = bot.send_message(req.chat.id,
                                    "Привет! Меня зовут Афина,я Ваш личный помощник, умею выводить курсы валют, дарить печеньки и предсказывать погоду!")
             send_welcome(req)
-        elif(req.text == 'Печенье с предсказанием'):
+        elif (req.text == 'Печенье с предсказанием'):
             cookie(req)
         else:
             bot.send_message(req.chat.id, "Извините, я еще только учусь понимать человеческую речь :)\n")
             send_welcome(req)
     except Exception as e:
        bot.reply_to(req, "Извините, что-то пошло не так...")
+
 # Погода
 def weather(message):
     r = requests.get('https://sinoptik.ua/погода-ульяновск')
@@ -56,6 +57,7 @@ def weather(message):
     bot.send_message(message.chat.id, "Прогноз погоды на сегодня:\n" +
                      temp_low + ', ' + temp_high + '\n' + text)
     bot.register_next_step_handler(message, process_select_step)
+
 #Печенье с предсказанием
 def cookie(message):
     path = r"pic"
@@ -63,9 +65,13 @@ def cookie(message):
         x for x in os.listdir(path)
         if os.path.isfile(os.path.join(path, x))
     ])
+    # FIXME: В Python следует использовать одинаковый размер отступов в 4 пробела
+    # Курс валют
+    # FIXME: закрывать файл, для объединения путей использовать os.path.join()
     photo = open(path+"\\"+random_filename, 'rb')
     bot.send_photo(message.chat.id, photo)
     bot.register_next_step_handler(message, process_select_step)
+# FIXME: PEP-8, прогнать код через линтер
 #Курс валют
 def money(message):
         # URL запроса
@@ -88,11 +94,16 @@ def money(message):
         for item in data['ValCurs']['Valute']:
             if item['@ID'] == section_id_usd:
                 rate_usd = item['Value']
+            # FIXME: elif?
             if item['@ID'] == section_id_eur:
                 rate_eur = item['Value']
                 break
         bot.send_message(message.chat.id, "Курс валют на сегодня:\n" +
                      "USD" + ': ' + str(rate_usd) + "\n" + "EUR" + ': ' + str(rate_eur))
         bot.register_next_step_handler(message, process_select_step)
+
+
 if __name__ == '__main__':
     bot.polling(none_stop=True)
+
+# Хорошо!
