@@ -98,6 +98,7 @@ def money(message):
             if item['@ID'] == section_id_eur:
                 rate_eur = item['Value']
                 break
+        # FIXME: Форматирование строк?
         bot.send_message(message.chat.id, "Курс валют на сегодня:\n" +
                      "USD" + ': ' + str(rate_usd) + "\n" + "EUR" + ': ' + str(rate_eur))
         bot.register_next_step_handler(message, process_select_step)
@@ -106,4 +107,5 @@ def money(message):
 if __name__ == '__main__':
     bot.polling(none_stop=True)
 
-# Хорошо!
+# Отлично!
+# requirement.txt - http://zabaykin.ru/?p=436
