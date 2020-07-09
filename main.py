@@ -93,8 +93,5 @@ def money(message):
         bot.send_message(message.chat.id, "Курс валют на сегодня:\n" +
                      "USD" + ': ' + str(rate_usd) + "\n" + "EUR" + ': ' + str(rate_eur))
         bot.register_next_step_handler(message, process_select_step)
-bot.enable_save_next_step_handlers(delay=2)
-bot.load_next_step_handlers()
-
 if __name__ == '__main__':
     bot.polling(none_stop=True)
