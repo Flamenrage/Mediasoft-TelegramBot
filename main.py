@@ -2,6 +2,7 @@ import telebot
 import requests
 import datetime
 import xmltodict
+import random, os
 from telebot import types
 from bs4 import BeautifulSoup as BS
 
@@ -12,8 +13,9 @@ def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     button_weather = types.KeyboardButton('Узнать погоду')
     button_money = types.KeyboardButton('Курс доллара/евро:')
+    button_cookie = types.KeyboardButton('Печенье с предсказанием')
     button_return = types.KeyboardButton('Закрыть меню')
-    markup.add(button_weather, button_money, button_return)
+    markup.add(button_weather, button_money, button_return, button_cookie)
 
     sms = bot.send_message(message.chat.id,
                            "Выберите:", reply_markup=markup)
@@ -32,14 +34,15 @@ def process_select_step(req):
                              reply_markup=markup)
         elif (req.text == "/start" or req.text == "/help"):
             sms = bot.send_message(req.chat.id,
-                                   "Привет! Меня зовут Афина,я Ваш личный помощник, умею выводить курсы валют и предсказывать погоду!")
+                                   "Привет! Меня зовут Афина,я Ваш личный помощник, умею выводить курсы валют, дарить печеньки и предсказывать погоду!")
             send_welcome(req)
+        elif(req.text == 'Печенье с предсказанием'):
+            cookie(req)
         else:
             bot.send_message(req.chat.id, "Извините, я еще только учусь понимать человеческую речь :)\n")
             send_welcome(req)
     except Exception as e:
-       bot.reply_to(req, e)
-
+       bot.reply_to(req, "Извините, что-то пошло не так...")
 # Погода
 def weather(message):
     r = requests.get('https://sinoptik.ua/погода-ульяновск')
@@ -49,10 +52,20 @@ def weather(message):
         temp_low = el.select('.temperature .min')[0].text
         temp_high = el.select('.temperature .max')[0].text
         text = el.select('.wDescription .description')[0].text
-    bot.send_message(message.chat.id, "Привет, погода на сегодня:\n" +
+    bot.send_message(message.chat.id, "Прогноз погоды на сегодня:\n" +
                      temp_low + ', ' + temp_high + '\n' + text)
     bot.register_next_step_handler(message, process_select_step)
-
+#Печенье с предсказанием
+def cookie(message):
+    path = r"pic"
+    random_filename = random.choice([
+        x for x in os.listdir(path)
+        if os.path.isfile(os.path.join(path, x))
+    ])
+    photo = open(path+"\\"+random_filename, 'rb')
+    bot.send_photo(message.chat.id, photo)
+    bot.register_next_step_handler(message, process_select_step)
+#Курс валют
 def money(message):
         # URL запроса
         get_curl = "http://www.cbr.ru/scripts/XML_daily.asp"
@@ -77,7 +90,7 @@ def money(message):
             if item['@ID'] == section_id_eur:
                 rate_eur = item['Value']
                 break
-        bot.send_message(message.chat.id, "Привет, курс валют на сегодня:\n" +
+        bot.send_message(message.chat.id, "Курс валют на сегодня:\n" +
                      "USD" + ': ' + str(rate_usd) + "\n" + "EUR" + ': ' + str(rate_eur))
         bot.register_next_step_handler(message, process_select_step)
 bot.enable_save_next_step_handlers(delay=2)
