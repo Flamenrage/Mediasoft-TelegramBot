@@ -6,8 +6,12 @@ import random, os
 from telebot import types
 from bs4 import BeautifulSoup as BS
 import configuration
+import logging
 
-bot = telebot.TeleBot(configuration.Token)
+bot = telebot.TeleBot(configuration.token)
+logger = telebot.logger
+logging.basicConfig(filename='logger.log', filemode='w', format=' %(asctime)s - %(levelname)s - %(message)s')
+telebot.logger.setLevel(logging.DEBUG)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
@@ -17,7 +21,8 @@ def send_welcome(message):
     button_cookie = types.KeyboardButton('Печенье с предсказанием')
     button_return = types.KeyboardButton('Закрыть меню')
     markup.add(button_weather, button_money, button_return, button_cookie)
-
+    bot.send_message(message.chat.id,
+                     "Привет! Меня зовут Афина,я Ваш личный помощник, умею выводить курсы валют, дарить печеньки и предсказывать погоду!")
     sms = bot.send_message(message.chat.id,
                            "Выберите:", reply_markup=markup)
     bot.register_next_step_handler(sms, process_select_step)
@@ -34,8 +39,6 @@ def process_select_step(req):
             bot.send_message(req.chat.id, "Чтож, увидимся позже, напиши /start или /help, чтобы возобновить работу.\n",
                              reply_markup=markup)
         elif (req.text == "/start" or req.text == "/help"):
-            sms = bot.send_message(req.chat.id,
-                                   "Привет! Меня зовут Афина,я Ваш личный помощник, умею выводить курсы валют, дарить печеньки и предсказывать погоду!")
             send_welcome(req)
         elif(req.text == 'Печенье с предсказанием'):
             cookie(req)
@@ -58,13 +61,14 @@ def weather(message):
     bot.register_next_step_handler(message, process_select_step)
 #Печенье с предсказанием
 def cookie(message):
-    path = r"pic"
-    random_filename = random.choice([
-        x for x in os.listdir(path)
-        if os.path.isfile(os.path.join(path, x))
-    ])
-    photo = open(path+"\\"+random_filename, 'rb')
-    bot.send_photo(message.chat.id, photo)
+    path = r'pic'
+    ph = random.choice([
+            x for x in os.listdir(path)
+            if os.path.isfile(os.path.join(path, x))
+     ])
+    with open(os.path.join(path, ph), 'rb') as photo:
+        bot.send_photo(message.chat.id, photo)
+    photo.close()
     bot.register_next_step_handler(message, process_select_step)
 #Курс валют
 def money(message):
@@ -79,20 +83,19 @@ def money(message):
             "date_req": today.strftime(date_format),
         }
         r = requests.get(get_curl, params=params)
-        resp = r.text
-        data = xmltodict.parse(resp)
+        data = xmltodict.parse(r.text)
         # Ищем по @ID
-        section_id_usd = 'R01235'
-        section_id_eur = 'R01239'
+        section_id_usd = 'R01235' #неизменный id доллара
+        section_id_eur = 'R01239' #неизменный id евро
 
         for item in data['ValCurs']['Valute']:
             if item['@ID'] == section_id_usd:
-                rate_usd = item['Value']
+                rate_usd = str(item['Value'])
             if item['@ID'] == section_id_eur:
-                rate_eur = item['Value']
+                rate_eur = str(item['Value'])
                 break
         bot.send_message(message.chat.id, "Курс валют на сегодня:\n" +
-                     "USD" + ': ' + str(rate_usd) + "\n" + "EUR" + ': ' + str(rate_eur))
+                     "USD" + ': ' + rate_usd + "\n" + "EUR" + ': ' + rate_eur)
         bot.register_next_step_handler(message, process_select_step)
 if __name__ == '__main__':
     bot.polling(none_stop=True)
