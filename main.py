@@ -11,7 +11,7 @@ import logging
 bot = telebot.TeleBot(configuration.token)
 logger = telebot.logger
 logging.basicConfig(filename='logger.log', filemode='w', format=' %(asctime)s - %(levelname)s - %(message)s')
-telebot.logger.setLevel(logging.DEBUG)
+telebot.logger.setLevel(logging.ERROR)
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -49,6 +49,7 @@ def process_select_step(req):
             bot.send_message(req.chat.id, "Извините, я еще только учусь понимать человеческую речь :)\n")
             send_welcome(req)
     except Exception as e:
+        logger.error(e)  # сообщение о конкретной ошибке выносится в logger.log файл
         bot.reply_to(req, "Извините, что-то пошло не так...")
 
 
