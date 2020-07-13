@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup as BS
 import configuration
 import logging
 
-bot = telebot.TeleBot(configuration.token)
+bot = telebot.TeleBot(configuration.TOKEN)
 logger = telebot.logger
 logging.basicConfig(filename='logger.log', filemode='w', format=' %(asctime)s - %(levelname)s - %(message)s')
 telebot.logger.setLevel(logging.INFO)
@@ -41,7 +41,8 @@ def process_select_step(req):
             bot.send_sticker(req.chat.id, "CAACAgIAAxkBAAEBC85fDE4JdRCp0JvS-9hOYVzmSrxGfAAC4gMAAkb7rARXuS9B8MmGBRoE")
             # убрать клавиатуру
             markup = types.ReplyKeyboardRemove(selective=False)
-            bot.send_message(req.chat.id, "Чтож, увидимся позже, напиши /start или /help, чтобы возобновить работу.\n",
+            bot.send_message(req.chat.id, "Чтож, увидимся позже, напиши /start или /help, "
+                                          "чтобы возобновить работу.\n",
                              reply_markup=markup)
         elif req.text == "/start" or req.text == "/help":
             send_welcome(req)
