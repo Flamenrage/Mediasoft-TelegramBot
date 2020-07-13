@@ -22,6 +22,7 @@ def send_welcome(message):
     button_cookie = types.KeyboardButton('Печенье с предсказанием')
     button_return = types.KeyboardButton('Закрыть меню')
     markup.add(button_weather, button_money, button_return, button_cookie)
+    bot.send_sticker(message.chat.id, "CAACAgIAAxkBAAEBC8hfDE3tvRHluJ9eo7GRTh4wt3MvTwACTwQAAkb7rAStc65jaXciOBoE")
     bot.send_message(message.chat.id,
                      "Привет! Меня зовут Афина,я Ваш личный помощник,"
                      "умею выводить курсы валют, дарить печеньки и предсказывать погоду!")
@@ -37,6 +38,7 @@ def process_select_step(req):
         elif req.text == 'Узнать погоду':
             weather(req)
         elif req.text == 'Закрыть меню':
+            bot.send_sticker(req.chat.id, "CAACAgIAAxkBAAEBC85fDE4JdRCp0JvS-9hOYVzmSrxGfAAC4gMAAkb7rARXuS9B8MmGBRoE")
             # убрать клавиатуру
             markup = types.ReplyKeyboardRemove(selective=False)
             bot.send_message(req.chat.id, "Чтож, увидимся позже, напиши /start или /help, чтобы возобновить работу.\n",
