@@ -11,7 +11,7 @@ import logging
 bot = telebot.TeleBot(configuration.token)
 logger = telebot.logger
 logging.basicConfig(filename='logger.log', filemode='w', format=' %(asctime)s - %(levelname)s - %(message)s')
-telebot.logger.setLevel(logging.ERROR)
+telebot.logger.setLevel(logging.INFO)
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -65,6 +65,7 @@ def weather(message):
     bot.send_message(message.chat.id, "Прогноз погоды на сегодня:\n" +
                      temp_low + ', ' + temp_high + '\n' + text)
     bot.register_next_step_handler(message, process_select_step)
+    logger.info("Вызвана функция о погоде")
 
 
 # Печенье с предсказанием
@@ -78,6 +79,7 @@ def cookie(message):
         bot.send_photo(message.chat.id, photo)
     photo.close()
     bot.register_next_step_handler(message, process_select_step)
+    logger.info("Вызвана функция о печенье")
 
 
 # Курс валют
@@ -106,6 +108,7 @@ def money(message):
             break
     bot.send_message(message.chat.id, 'Курс валют на сегодня:\n USD: %s\n EUR: %s' % (rate_usd, rate_eur))
     bot.register_next_step_handler(message, process_select_step)
+    logger.info("Вызвана денежная функция")
 
 
 if __name__ == '__main__':
